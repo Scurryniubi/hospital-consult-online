@@ -2,7 +2,7 @@
 import { ref, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { mobileRules, passwordRules, codeRules } from '@/utils/rules'
-import { showSuccessToast, showFailToast, type FormInstance } from 'vant'
+import { showSuccessToast, showFailToast, type FormInstance, showNotify } from 'vant'
 import { loginByPassword, sendMobileCode, loginByMobile } from '@/api'
 import { useUserStore } from '@/stores'
 import { useRoute } from 'vue-router'
@@ -28,15 +28,20 @@ const send = async () => {
   if (time.value > 0) return
   // 验证不通过报错，阻止程序继续执行
   await form.value?.validate('mobile')
-  const res = await sendMobileCode(mobile.value, 'login')
-  console.log(res)
-  showSuccessToast('发送成功')
+
   time.value = 60
   // 倒计时
   timeId = window.setInterval(() => {
     time.value--
+    if (time.value === 55) {
+      showNotify({ type: 'success', message: `验证码:${res.data.code}`, duration: 5000 })
+    }
     if (time.value <= 0) window.clearInterval(timeId)
   }, 1000)
+
+  const res = await sendMobileCode(mobile.value, 'login')
+  console.log(res)
+  showSuccessToast('发送成功')
 }
 
 onUnmounted(() => {

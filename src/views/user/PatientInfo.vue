@@ -2,9 +2,23 @@
 import { getPatientList } from '@/api/user'
 import type { PatientList } from '@/types/User'
 import { onMounted, ref } from 'vue'
+import { Popup, showDialog } from 'vant'
 
 // 1. 查询家庭档案-患者列表
 const list = ref<PatientList>([])
+const options = ref([
+  { label: '男', value: 1 },
+  { label: '女', value: 0 }
+])
+// 设定默认值
+const gender = ref<string | number>(1)
+const showRight = ref(false)
+const closeDialog = () => {
+  showRight.value = false
+}
+const showPatient = () => {
+  showRight.value = true
+}
 const loadList = async () => {
   const res = await getPatientList()
   console.log(res)
@@ -35,7 +49,7 @@ onMounted(() => {
         <div class="icon"><cp-icon name="user-edit" /></div>
         <div class="tag" v-if="item.defaultFlag === 1">默认</div>
       </div>
-      <div class="patient-add" v-if="list.length < 6">
+      <div @click="showPatient" class="patient-add" v-if="list.length < 6">
         <cp-icon name="user-add" />
         <p>添加患者</p>
       </div>
@@ -45,12 +59,24 @@ onMounted(() => {
     <div class="patient-next" v-if="false">
       <van-button type="primary" round block>下一步</van-button>
     </div>
+    <van-popup v-model:show="showRight" position="right">
+      <cp-nav-bar :closeDialog="closeDialog" title="添加患者"> </cp-nav-bar>
+      <cp-radio-btn :options="options" v-model="gender"></cp-radio-btn>
+    </van-popup>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .patient-page {
   padding: 46px 0 80px;
+  ::v-deep() {
+    .van-popup {
+      width: 100%;
+      height: 100%;
+      padding-top: 46px;
+      box-sizing: border-box;
+    }
+  }
 }
 .patient-change {
   padding: 15px;
