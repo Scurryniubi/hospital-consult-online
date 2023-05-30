@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { getPatientList, addPatient, editPatient } from '@/api/user'
+import { getPatientList, addPatient, editPatient, delPatient } from '@/api/user'
 import type { PatientList, Patient } from '@/types/User'
 import Validator from 'id-validator'
 import { onMounted, ref, watch } from 'vue'
-import { showToast, showSuccessToast } from 'vant'
+import { showToast, showSuccessToast, showConfirmDialog } from 'vant'
 // import { Popup, showDialog } from 'vant'
 
 // 1. 查询家庭档案-患者列表
@@ -21,6 +21,8 @@ const initPatient: Patient = {
 }
 const patient = ref<Patient>({ ...initPatient })
 const defaultFlag = ref(false)
+
+// 保存按钮
 const submit = async () => {
   if (!patient.value.name) return showToast('请输入真实姓名')
   if (!patient.value.idCard) return showToast('请输入身份证号')
@@ -34,6 +36,23 @@ const submit = async () => {
   loadList()
   showSuccessToast(patient.value.id ? '编辑成功' : '添加成功')
 }
+
+// 删除按钮
+const remove = async () => {
+  if (patient.value.id) {
+    await showConfirmDialog({
+      title: '温馨提示',
+      message: `您确认要删除 ${patient.value.name} 患者信息吗 ？`,
+      cancelButtonText: '取消',
+      confirmButtonText: '确认'
+    })
+    await delPatient(patient.value.id)
+    showRight.value = false
+    loadList()
+    showSuccessToast('删除成功')
+  }
+}
+
 watch(
   defaultFlag,
   () => {
@@ -126,6 +145,9 @@ onMounted(() => {
           </template>
         </van-field>
       </van-form>
+      <van-action-bar v-if="patient.id">
+        <van-action-bar-button @click="remove" type="danger" text="删除"></van-action-bar-button>
+      </van-action-bar>
     </van-popup>
   </div>
 </template>
