@@ -4,7 +4,7 @@ defineProps<{
     label: string
     value: number | string
   }[]
-  modelValue: number
+  modelValue: number | string
 }>()
 const emit = defineEmits<{
   (e: 'update:modelValue', data: number | string): void
