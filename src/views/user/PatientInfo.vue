@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { getPatientList } from '@/api/user'
-import type { PatientList } from '@/types/User'
-import { onMounted, ref } from 'vue'
-import { Popup, showDialog } from 'vant'
+import { getPatientList, addPatient, editPatient } from '@/api/user'
+import type { PatientList, Patient } from '@/types/User'
+import Validator from 'id-validator'
+import { onMounted, ref, watch } from 'vue'
+import { showToast, showSuccessToast } from 'vant'
+// import { Popup, showDialog } from 'vant'
 
 // 1. 查询家庭档案-患者列表
 const list = ref<PatientList>([])
@@ -10,21 +12,63 @@ const options = ref([
   { label: '男', value: 1 },
   { label: '女', value: 0 }
 ])
+// 准备默认值,用于在每次打开时重置表单
+const initPatient: Patient = {
+  name: '',
+  idCard: '',
+  gender: 1,
+  defaultFlag: 0
+}
+const patient = ref<Patient>({ ...initPatient })
+const defaultFlag = ref(false)
+const submit = async () => {
+  if (!patient.value.name) return showToast('请输入真实姓名')
+  if (!patient.value.idCard) return showToast('请输入身份证号')
+  const validate = new Validator()
+  if (!validate.isValid(patient.value.idCard)) return showToast('身份证格式错误')
+  const { sex } = validate.getInfo(patient.value.idCard)
+  if (patient.value.gender !== sex) return showToast('性别和身份证不符')
+
+  patient.value.id ? await editPatient(patient.value) : await addPatient(patient.value)
+  showRight.value = false
+  loadList()
+  showSuccessToast(patient.value.id ? '编辑成功' : '添加成功')
+}
+watch(
+  defaultFlag,
+  () => {
+    patient.value.defaultFlag = defaultFlag.value ? 1 : 0
+  },
+  {
+    deep: true
+  }
+)
 // 设定默认值
-const gender = ref<string | number>(1)
+// const gender = ref<string | number>(1)
 const showRight = ref(false)
+// 关闭侧边栏
 const closeDialog = () => {
   showRight.value = false
 }
-const showPatient = () => {
+// 打开侧边栏
+const showPatient = (item?: Patient) => {
   showRight.value = true
+  if (item) {
+    const { id, gender, name, idCard, defaultFlag } = item
+    patient.value = { id, gender, name, idCard, defaultFlag }
+  } else {
+    patient.value = { ...initPatient }
+  }
 }
+
+// 初始化列表
 const loadList = async () => {
   const res = await getPatientList()
   console.log(res)
-
   list.value = res.data
 }
+
+// 首次打开时渲染一次
 onMounted(() => {
   loadList()
 })
@@ -46,10 +90,10 @@ onMounted(() => {
           <span>{{ item.genderValue }}</span>
           <span>{{ item.age }}岁</span>
         </div>
-        <div class="icon"><cp-icon name="user-edit" /></div>
+        <div class="icon" @click="showPatient(item)"><cp-icon name="user-edit" /></div>
         <div class="tag" v-if="item.defaultFlag === 1">默认</div>
       </div>
-      <div @click="showPatient" class="patient-add" v-if="list.length < 6">
+      <div @click="showPatient()" class="patient-add" v-if="list.length < 6">
         <cp-icon name="user-add" />
         <p>添加患者</p>
       </div>
@@ -60,8 +104,28 @@ onMounted(() => {
       <van-button type="primary" round block>下一步</van-button>
     </div>
     <van-popup v-model:show="showRight" position="right">
-      <cp-nav-bar :closeDialog="closeDialog" title="添加患者"> </cp-nav-bar>
-      <cp-radio-btn :options="options" v-model="gender"></cp-radio-btn>
+      <cp-nav-bar
+        :closeDialog="closeDialog"
+        :title="patient.id ? '编辑患者' : '添加患者'"
+        right-text="保存"
+        @click-right="submit"
+      >
+      </cp-nav-bar>
+      <van-form autocomplete="off">
+        <van-field label="真实姓名" v-model="patient.name" placeholder="请输入真实姓名" />
+        <van-field label="身份证号" v-model="patient.idCard" placeholder="请输入身份证号" />
+        <van-field label="性别">
+          <!-- 单选按钮组件 -->
+          <template #input>
+            <cp-radio-btn :options="options" v-model="patient.gender"></cp-radio-btn>
+          </template>
+        </van-field>
+        <van-field label="默认就诊人">
+          <template #input>
+            <van-checkbox round v-model="defaultFlag" />
+          </template>
+        </van-field>
+      </van-form>
     </van-popup>
   </div>
 </template>

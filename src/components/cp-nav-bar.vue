@@ -18,6 +18,7 @@ const onClickRight = () => {
 }
 const props = defineProps<{
   closeDialog?: () => void
+  title?: string
 }>()
 const emits = defineEmits<{
   (e: 'onClickRight'): void
@@ -29,7 +30,7 @@ const emits = defineEmits<{
     left-arrow
     @click-left="onClickLeft"
     fixed
-    title="注册"
+    :title="title"
     right-text=""
     @click-right="onClickRight"
   ></van-nav-bar>
