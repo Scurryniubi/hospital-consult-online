@@ -8,12 +8,14 @@ import { showImagePreview } from 'vant'
 import type { Image } from '@/types/consult'
 import { useUserStore } from '@/stores'
 import dayjs from 'dayjs'
-import { getPrescriptionPic } from '@/api/consult'
+// import { getPrescriptionPic } from '@/api/consult'
 import { useRouter } from 'vue-router'
 import { PrescriptionStatus } from '@/enums'
 import { showToast } from 'vant'
+import { useShowPrescription } from '@/hooks/useShowPrescription'
 
 const store = useUserStore()
+const { showPrescription } = useShowPrescription()
 
 // 点击处方的跳转
 const router = useRouter()
@@ -32,12 +34,12 @@ const loadSuccess = () => {
   window.scrollTo(0, document.body.scrollHeight)
 }
 
-const showPrescription = async (id?: string) => {
-  if (id) {
-    const res = await getPrescriptionPic(id)
-    showImagePreview([res.data.url])
-  }
-}
+// const showPrescription = async (id?: string) => {
+//   if (id) {
+//     const res = await getPrescriptionPic(id)
+//     showImagePreview([res.data.url])
+//   }
+// }
 
 const previewImg = (pictures?: Image[]) => {
   if (pictures && pictures.length) {

@@ -12,6 +12,7 @@ import type { ConsultOrderPreData } from '@/types/consult'
 import { showConfirmDialog, showFailToast, showToast } from 'vant'
 import { useRouter } from 'vue-router'
 import { onBeforeRouteLeave } from 'vue-router'
+import CpPaySheet from '@/components/cp-pay-sheet.vue'
 
 const router = useRouter()
 const store = useConsultStore()
@@ -21,7 +22,7 @@ const agree = ref(false) // 控制是否同意支付协议
 const show = ref(false) // 控制支付弹层是否出现
 const paymentMethod = ref<0 | 1>() // 支付方式（0:微信，1:支付宝）
 const orderId = ref('')
-const payCallback = ref('http://127.0.0.1:5173/room')
+// const payCallback = ref('http://127.0.0.1:5173/room')
 
 // 第一次点立即支付
 const pay = async () => {
@@ -32,20 +33,20 @@ const pay = async () => {
   orderId.value = res.data.id
 }
 // 第二次点立即支付 -- 在弹窗里点
-const next = async () => {
-  if (paymentMethod.value === undefined) return showFailToast('请选择支付方式')
-  if (paymentMethod.value === 0)
-    return showFailToast('非常抱歉,微信支付暂时无法使用，请换一种支付方式')
-  showToast('跳转支付中...')
-  const res = await getConsultOrderPayUrl({
-    paymentMethod: paymentMethod.value,
-    orderId: orderId.value,
-    payCallback: 'http://127.0.0.1:5173/room'
-  })
-  window.location.href = res.data.payUrl
-}
+// const next = async () => {
+//   if (paymentMethod.value === undefined) return showFailToast('请选择支付方式')
+//   if (paymentMethod.value === 0)
+//     return showFailToast('非常抱歉,微信支付暂时无法使用，请换一种支付方式')
+//   showToast('跳转支付中...')
+//   const res = await getConsultOrderPayUrl({
+//     paymentMethod: paymentMethod.value,
+//     orderId: orderId.value,
+//     payCallback: 'http://127.0.0.1:5173/room'
+//   })
+//   window.location.href = res.data.payUrl
+// }
 
-const beforeClose = () => {
+const onClose = () => {
   return showConfirmDialog({
     title: '关闭支付',
     message: '取消支付将无法获得医生回复，医生接诊名额有限，是否确认关闭？',
@@ -133,7 +134,7 @@ onBeforeRouteLeave(() => {
       text-align="left"
     />
     <!-- 支付弹层 -->
-    <van-action-sheet
+    <!-- <van-action-sheet
       v-model:show="show"
       title="选择支付方式"
       :before-close="beforeClose"
@@ -155,7 +156,14 @@ onBeforeRouteLeave(() => {
           <van-button @click="next" type="primary" round block>立即支付</van-button>
         </div>
       </div>
-    </van-action-sheet>
+    </van-action-sheet> -->
+
+    <cp-pay-sheet
+      v-model:show="show"
+      :order-id="orderId"
+      :actualPayment="consultOrderPre.actualPayment"
+      :onClose="onClose"
+    />
   </div>
 </template>
 

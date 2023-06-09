@@ -1,38 +1,125 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { getMedicalOrderLogistics } from '@/api/medicine'
+import type { Express } from '@/types/medicine'
+import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
+import AMapLoader from '@amap/amap-jsapi-loader'
+import carImg from '@/assets/car.png'
+import startImg from '@/assets/start.png'
+import endImg from '@/assets/end.png'
+
+// 获取物流信息
+const express = ref<Express>()
+const route = useRoute()
+const router = useRouter()
+
+// v2.0 需要配置安全密钥jscode
+window._AMapSecurityConfig = {
+  securityJsCode: 'c9b12941e7897072be9099dd22aad9b8'
+}
+
+onMounted(async () => {
+  const res = await getMedicalOrderLogistics(route.params.id as string)
+  express.value = res.data
+})
+
+onMounted(async () => {
+  // ... 省略 ...
+  AMapLoader.load({
+    key: '7a81665e3f5e990455f71288d9132829',
+    version: '2.0'
+  }).then((AMap) => {
+    // 使用 Amap 初始化地图
+    const map = new AMap.Map('map', {
+      //设置地图容器id
+      zoom: 12, //初始化地图(缩放)级别
+      mapStyle: 'amap://styles/whitesmoke' // 设置地图样式
+    })
+
+    AMap.plugin('AMap.Driving', () => {
+      var driving = new AMap.Driving({
+        map: map, // 指定轨迹显示地图实例
+        showTraffic: true, // 关闭交通状态
+        hideMarkers: true // 关闭路径规划中的默认标记
+      })
+      // // 开始位置坐标
+      // var startLngLat = [116.379028, 39.865042]
+      // // 结束位置坐标
+      // var endLngLat = [116.427281, 39.903719]
+
+      // 1. 使用经纬度数组中的第一个数据：起始坐标
+      const start = express.value?.logisticsInfo.shift()
+      // 2. 使用经纬度数组中的最后一个数据：结束坐标
+      const end = express.value?.logisticsInfo.pop()
+
+      const road = express.value?.logisticsInfo.map((item) => [item.longitude, item.latitude])
+
+      // 自定义开始结束位置图片
+      const startMarker = new AMap.Marker({
+        icon: startImg, // 设置自定义图片
+        position: [start?.longitude, start?.latitude] // 图片显示的坐标位置
+      })
+      map.add(startMarker)
+      const endMarker = new AMap.Marker({
+        icon: endImg,
+        position: [end?.longitude, end?.latitude]
+      })
+      map.add(endMarker)
+
+      driving.search(
+        [start?.longitude, start?.latitude],
+        [end?.longitude, end?.latitude],
+        {
+          waypoints: road // 显示途经点坐标
+        },
+        function (status: string, result: object) {
+          // 未出错时，result即是对应的路线规划方案
+          // 绘制运输中货车的当前位置
+          const carMarker = new AMap.Marker({
+            icon: carImg,
+            position: [
+              express.value?.currentLocationInfo.longitude,
+              express.value?.currentLocationInfo.latitude
+            ],
+            anchor: 'center' // 设置基于坐标点显示的位置
+          })
+          map.add(carMarker)
+          // 3s后，定位到货车，放大地图
+          setTimeout(() => {
+            map.setFitView([carMarker])
+            map.setZoom(10)
+          }, 3000)
+        }
+      )
+    })
+  })
+})
+</script>
 
 <template>
   <div class="order-logistics-page">
     <div id="map">
       <div class="title">
-        <van-icon name="arrow-left" @click="$router.back()" />
-        <span>配送中</span>
+        <van-icon name="arrow-left" @click="router.back()" />
+        <span>{{ express?.statusValue }}</span>
         <van-icon name="service" />
       </div>
       <div class="current">
-        <p class="status">订单派送中 预计明天送达</p>
+        <p class="status">{{ express?.statusValue }}——预计{{ express?.estimatedTime }}送达</p>
         <p class="predict">
-          <span>申通快递</span>
-          <span>7511266366963366</span>
+          <span>{{ express?.name }}</span>
+          <span>{{ express?.awbNo }}</span>
         </p>
       </div>
     </div>
     <div class="logistics">
       <p class="title">物流详情</p>
       <van-steps direction="vertical" :active="0">
-        <van-step>
-          <p class="status">派送中</p>
-          <p class="content">您的订单正在派送中【深圳市】科技园派送员宋平正在为您派件</p>
-          <p class="time">今天天 17:25</p>
-        </van-step>
-        <van-step v-for="i in 5" :key="i">
-          <p class="status">运输中</p>
-          <p class="content">在广东深圳公司进行发出扫描</p>
-          <p class="time">昨天 10:25</p>
-        </van-step>
-        <van-step>
-          <p class="status">已发货</p>
-          <p class="content">卖家已发货</p>
-          <p class="time">2022-08-20 10:25</p>
+        <van-step v-for="item in express?.list" :key="item.id">
+          <p class="status" v-if="item.statusValue">{{ item.statusValue }}</p>
+          <p class="content">{{ item.content }}</p>
+          <p class="time">{{ item.createTime }}</p>
         </van-step>
       </van-steps>
     </div>
