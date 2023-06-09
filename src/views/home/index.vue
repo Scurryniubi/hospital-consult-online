@@ -18,7 +18,11 @@
           </router-link>
         </van-col>
         <van-col span="8">
-          <router-link to="/consult/fast" class="nav">
+          <router-link
+            @click="store.setConsultType(ConsultType.Fast)"
+            to="/consult/fast"
+            class="nav"
+          >
             <cp-icon name="home-graphic"></cp-icon>
             <p class="title">极速问诊</p>
             <p class="desc">20s医生极速回复</p>
@@ -88,7 +92,11 @@ import { ref } from 'vue'
 import type { KnowledgeType } from '@/types/consult'
 import KnowledgeList from './components/KnowledgeList.vue'
 import FollowDoctor from './components/FollowDoctor.vue'
+import { useConsultStore } from '@/stores'
+import { ConsultType } from '@/enums'
 
+// 创建store
+const store = useConsultStore()
 // 用于控制van-tab切换初始值为'推荐'
 const active = ref<KnowledgeType>('recommend')
 </script>

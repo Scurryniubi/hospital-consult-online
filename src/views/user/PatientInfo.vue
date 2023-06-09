@@ -2,9 +2,34 @@
 import { getPatientList, addPatient, editPatient, delPatient } from '@/api/user'
 import type { PatientList, Patient } from '@/types/User'
 import Validator from 'id-validator'
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref, watch, computed } from 'vue'
 import { showToast, showSuccessToast, showConfirmDialog } from 'vant'
+import { useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
+import { useConsultStore } from '@/stores'
 // import { Popup, showDialog } from 'vant'
+
+const store = useConsultStore()
+
+const route = useRoute()
+const router = useRouter()
+const isChanged = computed(() => {
+  return route.query.isChanged === '1'
+})
+const patientId = ref<string>()
+const getId = (id: string | undefined) => {
+  if (isChanged.value) {
+    patientId.value = id
+    // console.log(patientId.value)
+  }
+}
+const next = () => {
+  if (isChanged.value) {
+    router.push('/consult/ConsultPay')
+    store.setPatient(patientId.value)
+  }
+}
+const disabled = computed(() => patientId.value === undefined)
 
 // 1. 查询家庭档案-患者列表
 const list = ref<PatientList>([])
@@ -85,6 +110,11 @@ const loadList = async () => {
   const res = await getPatientList()
   console.log(res)
   list.value = res.data
+
+  if (isChanged.value && list.value.length) {
+    const item = list.value.find((item) => item.defaultFlag === 1)
+    patientId.value = item?.id
+  }
 }
 
 // 首次打开时渲染一次
@@ -95,14 +125,20 @@ onMounted(() => {
 
 <template>
   <div class="patient-page">
-    <cp-nav-bar title="家庭档案" />
+    <cp-nav-bar :title="isChanged ? '患者信息' : '家庭档案'" />
     <!-- 头部选择提示 -->
-    <div class="patient-change" v-if="false">
+    <div class="patient-change" v-if="isChanged">
       <h3>请选择患者信息</h3>
       <p>以便医生给出更准确的治疗，信息仅医生可见</p>
     </div>
     <div class="patient-list">
-      <div class="patient-item" v-for="item in list" :key="item.id">
+      <div
+        class="patient-item"
+        @click="getId(item.id)"
+        :class="{ selected: patientId === item.id }"
+        v-for="item in list"
+        :key="item.id"
+      >
         <div class="info">
           <span class="name">{{ item.name }}</span>
           <span class="id">{{ item.idCard.replace(/^(.{6})(?:\d+)(.{4})$/, '\$1******\$2') }}</span>
@@ -119,8 +155,8 @@ onMounted(() => {
       <div class="patient-tip">最多可添加 6 人</div>
     </div>
     <!-- 患者选择下一步 -->
-    <div class="patient-next" v-if="false">
-      <van-button type="primary" round block>下一步</van-button>
+    <div class="patient-next" v-if="isChanged">
+      <van-button type="primary" @click="next" :disabled="disabled" round block>下一步</van-button>
     </div>
     <van-popup v-model:show="showRight" position="right">
       <cp-nav-bar

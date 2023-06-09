@@ -1,7 +1,22 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useConsultStore } from '@/stores'
+import { getAllDep } from '@/api/consult'
+import { onMounted } from 'vue'
+import type { TopDep } from '@/types/consult'
 
+const store = useConsultStore()
 const active = ref(0)
+const allDep = ref([] as TopDep[])
+
+const getAllDepApi = async () => {
+  const res = await getAllDep()
+  allDep.value = res.data
+}
+
+onMounted(() => {
+  getAllDepApi()
+})
 </script>
 
 <template>
@@ -11,16 +26,17 @@ const active = ref(0)
     <div class="wrapper">
       <!-- 一级科室 -->
       <van-sidebar v-model="active">
-        <van-sidebar-item title="内科" />
-        <van-sidebar-item title="外科" />
-        <van-sidebar-item title="皮肤科" />
-        <van-sidebar-item title="骨科" />
+        <van-sidebar-item v-for="item in allDep" :key="item.id" :title="item.name" />
       </van-sidebar>
       <!-- 二级科室 -->
       <div class="sub-dep">
-        <router-link to="/consult/illness">科室一</router-link>
-        <router-link to="/consult/illness">科室二</router-link>
-        <router-link to="/consult/illness">科室三</router-link>
+        <router-link
+          @click="store.setDepId(item.id)"
+          v-for="item in allDep[active]?.child"
+          :key="item.id"
+          to="/consult/illness"
+          >{{ item.name }}</router-link
+        >
       </div>
     </div>
   </div>

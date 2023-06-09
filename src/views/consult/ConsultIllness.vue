@@ -1,4 +1,51 @@
 <script setup lang="ts">
+import type { IllnessData, Image } from '@/types/consult'
+import { uploadImage } from '@/api/consult'
+import { ref, computed, onMounted } from 'vue'
+import { showConfirmDialog } from 'vant'
+import { useRouter } from 'vue-router'
+import { useConsultStore } from '@/stores'
+// vant提供的类型
+import type { UploaderAfterRead, UploaderFileListItem } from 'vant/lib/uploader/types'
+const router = useRouter()
+const store = useConsultStore()
+
+const formData = ref<IllnessData>({
+  illnessDesc: undefined,
+  illnessTime: undefined,
+  consultFlag: undefined,
+  pictures: []
+})
+
+const fileList = ref<Image[]>([])
+const onAfterRead: UploaderAfterRead = (item) => {
+  if (Array.isArray(item)) return
+  if (!item.file) return
+  // 开始上传
+  item.status = 'uploading'
+  item.message = '上传中...'
+  console.log('item', item)
+  uploadImage(item.file)
+    .then((res) => {
+      item.status = 'done'
+      item.message = undefined
+      // 给 item 加上 url 是为了删除可以根据 url 进行删除
+      item.url = res.data.url
+      // 存储上传成功图片url
+      formData.value.pictures?.push(res.data)
+      console.log(res)
+      console.log('formData', formData.value)
+    })
+    .catch(() => {
+      item.status = 'failed'
+      item.message = '上传失败'
+    })
+}
+const onDeleteImg = (item: UploaderFileListItem) => {
+  // 删除已经上传图片
+  formData.value.pictures = formData.value.pictures?.filter((pic) => pic.url !== item.url)
+}
+
 // 患病时间选项
 const timeOptions = [
   { label: '一周内', value: 1 },
@@ -11,6 +58,36 @@ const flagOptions = [
   { label: '就诊过', value: 0 },
   { label: '没就诊过', value: 1 }
 ]
+
+const disabled = computed(() => {
+  return (
+    !formData.value.illnessDesc ||
+    formData.value.illnessTime === undefined ||
+    formData.value.consultFlag === undefined
+  )
+})
+const next = () => {
+  store.setIllness(formData.value)
+  router.push('/consult/patient?isChanged=1')
+}
+
+onMounted(() => {
+  if (store.consult.illnessDesc) {
+    showConfirmDialog({
+      title: '温馨提示',
+      message: '是否恢复您之前填写的病情信息呢',
+      closeOnPopstate: false // 是否在页面回退时自动关闭,注意默认值为true
+    })
+      .then(() => {
+        const { illnessDesc, illnessTime, consultFlag, pictures } = store.consult
+        formData.value = { illnessDesc, illnessTime, consultFlag, pictures }
+        fileList.value = pictures || []
+      })
+      .catch(() => {
+        // on cancel
+      })
+  }
+})
 </script>
 
 <template>
@@ -29,23 +106,31 @@ const flagOptions = [
     <div class="illness-form">
       <!-- 病情描述-基本情况 -->
       <van-field
+        v-model="formData.illnessDesc"
         type="textarea"
         rows="3"
         placeholder="请详细描述您的病情，病情描述不能为空"
       ></van-field>
       <div class="item">
         <p>本次患病多久了？</p>
-        <cp-radio-btn :options="timeOptions" />
+        <cp-radio-btn v-model="formData.illnessTime" :options="timeOptions" />
       </div>
       <div class="item">
         <p>此次病情是否去医院就诊过？</p>
-        <cp-radio-btn :options="flagOptions" />
+        <cp-radio-btn v-model="formData.consultFlag" :options="flagOptions" />
       </div>
       <!-- 病情描述-图片上传 -->
       <div class="illness-img">
-        <van-uploader></van-uploader>
+        <van-uploader
+          max-count="9"
+          :max-size="5 * 1024 * 1024"
+          :after-read="onAfterRead"
+          @delete="onDeleteImg"
+          v-model="fileList"
+        ></van-uploader>
         <p class="tip">上传内容仅医生可见,最多9张图,最大5MB</p>
       </div>
+      <van-button @click="next" :disabled="disabled" block type="primary">下一步</van-button>
     </div>
   </div>
 </template>
