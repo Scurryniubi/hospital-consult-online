@@ -68,7 +68,7 @@ const login = async () => {
 </script>
 
 <template>
-  <cp-nav-bar title="登录" @onClickRight="onClickRight"></cp-nav-bar>
+  <cp-nav-bar :left="false" title="登录" @onClickRight="onClickRight"></cp-nav-bar>
   <div class="login">
     <div class="login-head">
       <h3>{{ isPass ? '密码登录' : '短信验证码登录' }}</h3>

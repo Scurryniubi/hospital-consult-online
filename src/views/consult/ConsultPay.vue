@@ -133,30 +133,6 @@ onBeforeRouteLeave(() => {
       button-text="立即支付"
       text-align="left"
     />
-    <!-- 支付弹层 -->
-    <!-- <van-action-sheet
-      v-model:show="show"
-      title="选择支付方式"
-      :before-close="beforeClose"
-      :closeable="false"
-    >
-      <div class="pay-type">
-        <p class="amount">￥{{ consultOrderPre.actualPayment.toFixed(2) }}</p>
-        <van-cell-group>
-          <van-cell title="微信支付" @click="paymentMethod = 0">
-            <template #icon><cp-icon name="consult-wechat" /></template>
-            <template #extra><van-checkbox :checked="paymentMethod === 0" /></template>
-          </van-cell>
-          <van-cell title="支付宝支付" @click="paymentMethod = 1">
-            <template #icon><cp-icon name="consult-alipay" /></template>
-            <template #extra><van-checkbox :checked="paymentMethod === 1" /></template>
-          </van-cell>
-        </van-cell-group>
-        <div class="btn">
-          <van-button @click="next" type="primary" round block>立即支付</van-button>
-        </div>
-      </div>
-    </van-action-sheet> -->
 
     <cp-pay-sheet
       v-model:show="show"

@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import ConsultList from './components/ConsultList.vue'
 // import { ConsultType } from '@/enums'
+const { left = true } = defineProps<{
+  left?: boolean
+}>()
 </script>
 
 <template>
   <div class="consult-page">
-    <cp-nav-bar title="问诊记录" />
+    <cp-nav-bar :left="left" title="问诊记录" />
     <van-tabs sticky>
       <van-tab title="极速问诊"><consult-list :type="2" /></van-tab>
       <van-tab title="找医生"><consult-list :type="1" /></van-tab>

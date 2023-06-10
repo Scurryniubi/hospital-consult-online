@@ -80,28 +80,36 @@ onMounted(() => {
       </div>
       <van-row>
         <van-col span="6">
-          <van-badge :content="user.orderInfo?.paidNumber || ''">
-            <cp-icon name="user-paid" />
-          </van-badge>
-          <p>待付款</p>
+          <router-link to="/order?enterName=unPay">
+            <van-badge :content="user.orderInfo?.paidNumber || ''">
+              <cp-icon name="user-paid" />
+            </van-badge>
+            <p>待付款</p>
+          </router-link>
         </van-col>
         <van-col span="6">
-          <van-badge :content="user.orderInfo?.shippedNumber || ''">
-            <cp-icon name="user-shipped" />
-          </van-badge>
-          <p>待发货</p>
+          <router-link to="/order?enterName=unSend">
+            <van-badge :content="user.orderInfo?.shippedNumber || ''">
+              <cp-icon name="user-shipped" />
+            </van-badge>
+            <p>待发货</p>
+          </router-link>
         </van-col>
         <van-col span="6">
-          <van-badge :content="user.orderInfo?.receivedNumber || ''">
-            <cp-icon name="user-received" />
-          </van-badge>
-          <p>待收货</p>
+          <router-link to="/order?enterName=unReceive">
+            <van-badge :content="user.orderInfo?.receivedNumber || ''">
+              <cp-icon name="user-received" />
+            </van-badge>
+            <p>待收货</p>
+          </router-link>
         </van-col>
         <van-col span="6">
-          <van-badge :content="user.orderInfo?.finishedNumber || ''">
-            <cp-icon name="user-finished" />
-          </van-badge>
-          <p>已完成</p>
+          <router-link to="/order?enterName=complete">
+            <van-badge :content="user.orderInfo?.finishedNumber || ''">
+              <cp-icon name="user-finished" />
+            </van-badge>
+            <p>已完成</p>
+          </router-link>
         </van-col>
       </van-row>
     </div>

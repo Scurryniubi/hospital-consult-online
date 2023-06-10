@@ -68,3 +68,19 @@ export enum OrderType {
   // 已取消
   MedicineCancel = 14
 }
+
+/**
+ * 药品订单状态：'10': '待支付',   '11': '待发货',   '12': '待收货',  '13': '已完成', '14': '已取消',
+ */
+export enum OrderStatus {
+  // 待支付
+  UnPay = 10,
+  // 待发货
+  UnSend,
+  // 待收货
+  UnReceive,
+  // 已完成
+  Complete,
+  // 已取消
+  Cancel
+}

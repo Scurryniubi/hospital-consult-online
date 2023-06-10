@@ -15,7 +15,7 @@
         </template>
       </van-tabbar-item>
       <van-tabbar-item to="/notify">
-        消息中心
+        问诊记录
         <template #icon="{ active }">
           <cp-icon :name="`home-notice-${active ? 'active' : 'default'}`" />
         </template>

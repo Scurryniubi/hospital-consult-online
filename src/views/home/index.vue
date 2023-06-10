@@ -11,7 +11,11 @@
     <div class="home-navs">
       <van-row>
         <van-col span="8">
-          <router-link to="/" class="nav">
+          <router-link
+            @click="store.setConsultType(ConsultType.Fast)"
+            to="/consult/fast"
+            class="nav"
+          >
             <cp-icon name="home-doctor"></cp-icon>
             <p class="title">问医生</p>
             <p class="desc">按科室查问医生</p>
@@ -29,7 +33,11 @@
           </router-link>
         </van-col>
         <van-col span="8">
-          <router-link to="/" class="nav">
+          <router-link
+            to="/consult/fast"
+            @click="store.setConsultType(ConsultType.Fast)"
+            class="nav"
+          >
             <cp-icon name="home-prescribe"></cp-icon>
             <p class="title">开药门诊</p>
             <p class="desc">线上买药更方便</p>
@@ -38,27 +46,27 @@
       </van-row>
       <van-row>
         <van-col span="6">
-          <router-link to="/" class="nav min">
+          <router-link to="/order" class="nav min">
             <cp-icon name="home-order"></cp-icon>
             <p class="title">药品订单</p>
           </router-link>
         </van-col>
         <van-col span="6">
-          <router-link to="/" class="nav min">
+          <router-link to="/user/patient" class="nav min">
             <cp-icon name="home-docs"></cp-icon>
             <p class="title">健康档案</p>
           </router-link>
         </van-col>
         <van-col span="6">
-          <router-link to="/" class="nav min">
+          <router-link to="/order" class="nav min">
             <cp-icon name="home-rp"></cp-icon>
             <p class="title">我的处方</p>
           </router-link>
         </van-col>
         <van-col span="6">
-          <router-link to="/" class="nav min">
+          <router-link to="/notify" class="nav min">
             <cp-icon name="home-find"></cp-icon>
-            <p class="title">疾病查询</p>
+            <p class="title">问诊查询</p>
           </router-link>
         </van-col>
       </van-row>

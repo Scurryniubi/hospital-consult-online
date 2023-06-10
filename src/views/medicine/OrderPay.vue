@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { getAddressList, getMedicalOrderPre, createMedicalOrder } from '@/api/medicine'
+import { useOrderStore } from '@/stores/modules/order'
 import type { AddressItem, OrderPre } from '@/types/medicine'
-import { showToast } from 'vant'
+import { showToast, showConfirmDialog } from 'vant'
 import { onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
+const store = useOrderStore()
+const router = useRouter()
 const route = useRoute()
 // 1. 获取药品预订单信息和地址信息
 const orderPre = ref<OrderPre>()
@@ -29,6 +32,7 @@ const submit = async () => {
         addressId: address.value?.id,
         couponId: orderPre.value.couponId
       })
+      console.log(res)
       orderId.value = res.data.id
       loading.value = false
       // 打开支付抽屉
@@ -42,8 +46,29 @@ const submit = async () => {
   }
 }
 
+const onClose = () => {
+  return showConfirmDialog({
+    title: '关闭支付',
+    message: '取消支付将无法获得医生回复，医生接诊名额有限，是否确认关闭？',
+    cancelButtonText: '仍要关闭',
+    confirmButtonText: '继续支付',
+    confirmButtonColor: 'var(--cp-primary)'
+  })
+    .then(() => {
+      return false
+    })
+    .catch(() => {
+      store.setOrderIdMap({ orderID: orderId.value, preOrderID: route.query.id })
+      orderId.value = '' // 清空后才能跳转页面
+      router.push(`/order`)
+      return true
+    })
+}
+
 onMounted(async () => {
   const res = await getMedicalOrderPre({ prescriptionId: route.query.id as string })
+  console.log(res)
+
   const addRes = await getAddressList()
   orderPre.value = res.data
   // 设置收货地址
@@ -124,6 +149,7 @@ onMounted(async () => {
     :actualPayment="orderPre.payment"
     payCallback="http://127.0.0.1:5173/medicine/pay/result"
     v-model:show="show"
+    :onClose="onClose"
     v-if="orderPre"
   />
 </template>

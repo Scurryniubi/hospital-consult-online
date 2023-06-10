@@ -4,8 +4,8 @@ const router = useRouter()
 // 1. 已有的功能：返回图标，返回效果，固定定位（组件内部实现）
 // 2. 使用组件时候才能确定的功能：标题，右侧文字，点击右侧文字行为（props传入）
 const onClickLeft = () => {
-  if (props.closeDialog) {
-    return props.closeDialog()
+  if (closeDialog) {
+    return closeDialog()
   }
   if (history.state?.back) {
     router.back()
@@ -13,21 +13,31 @@ const onClickLeft = () => {
     router.push('/')
   }
 }
-const onClickRight = () => {
-  emits('onClickRight')
-}
-const props = defineProps<{
+const {
+  left = true,
+  closeDialog,
+  title,
+  clickRight
+} = defineProps<{
   closeDialog?: () => void
   title?: string
+  left?: boolean
+  clickRight?: () => void
 }>()
-const emits = defineEmits<{
-  (e: 'onClickRight'): void
-}>()
+
+// const emits = defineEmits<{
+//   (e: 'onClickRight'): void
+// }>()
+const onClickRight = () => {
+  if (clickRight) {
+    return clickRight()
+  }
+}
 </script>
 
 <template>
   <van-nav-bar
-    left-arrow
+    :left-arrow="left"
     @click-left="onClickLeft"
     fixed
     :title="title"

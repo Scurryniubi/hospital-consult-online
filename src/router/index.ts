@@ -32,7 +32,7 @@ const router = createRouter({
         {
           path: '/notify',
           component: () => import('@/views/notify/index.vue'),
-          meta: { title: '消息通知' }
+          meta: { title: '问诊记录' }
         },
         {
           path: '/user',
@@ -57,6 +57,11 @@ const router = createRouter({
         {
           path: '/medicine/express/:id',
           component: () => import('@/views/medicine/OrderExpress.vue'),
+          meta: { title: '物流详情' }
+        },
+        {
+          path: '/order',
+          component: () => import('@/views/order/index.vue'),
           meta: { title: '物流详情' }
         }
       ]
