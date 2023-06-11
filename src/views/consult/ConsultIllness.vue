@@ -17,7 +17,9 @@ const formData = ref<IllnessData>({
   pictures: []
 })
 
+// 用于和van-uploader进行v-model的双向绑定
 const fileList = ref<Image[]>([])
+// 这个item并不是我们传的值，就是vant自带的那个参数'file'
 const onAfterRead: UploaderAfterRead = (item) => {
   if (Array.isArray(item)) return
   if (!item.file) return
@@ -42,7 +44,7 @@ const onAfterRead: UploaderAfterRead = (item) => {
     })
 }
 const onDeleteImg = (item: UploaderFileListItem) => {
-  // 删除已经上传图片
+  // 删除已经上传图片 -->> 根据我们上传是记录的url来删除
   formData.value.pictures = formData.value.pictures?.filter((pic) => pic.url !== item.url)
 }
 
@@ -61,9 +63,10 @@ const flagOptions = [
 
 const disabled = computed(() => {
   return (
-    !formData.value.illnessDesc ||
-    formData.value.illnessTime === undefined ||
-    formData.value.consultFlag === undefined
+    // 一下三种情况只要有一种成立，则返回值就为true，也就是disable为true，此时无法点击
+    !formData.value.illnessDesc || // illnessDesc不存在的情况
+    formData.value.illnessTime === undefined || // illnessTime不存在的情况
+    formData.value.consultFlag === undefined // consultFlag不存在的情况
   )
 })
 const next = () => {

@@ -22,15 +22,18 @@ const agree = ref(false) // 控制是否同意支付协议
 const show = ref(false) // 控制支付弹层是否出现
 const paymentMethod = ref<0 | 1>() // 支付方式（0:微信，1:支付宝）
 const orderId = ref('')
+const loading = ref(false)
 // const payCallback = ref('http://127.0.0.1:5173/room')
 
 // 第一次点立即支付
 const pay = async () => {
   if (!agree.value) return showFailToast('请勾选我已同意支付协议')
-  show.value = true
+  loading.value = true // 在发送请求的前一个时刻启动submit的加载状态
   const res = await createConsultOrder(store.consult)
   console.log(res.data)
   orderId.value = res.data.id
+  loading.value = false // 在收到响应的后一个时刻关闭submit的加载状态
+  show.value = true
 }
 // 第二次点立即支付 -- 在弹窗里点
 // const next = async () => {
@@ -127,6 +130,7 @@ onBeforeRouteLeave(() => {
     </div>
     <!-- 3. 打开支付弹层并创建问诊订单 -->
     <van-submit-bar
+      :loading="loading"
       @click="pay"
       button-type="primary"
       :price="consultOrderPre.actualPayment * 100"

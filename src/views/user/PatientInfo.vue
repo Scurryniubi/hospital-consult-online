@@ -13,6 +13,7 @@ const store = useConsultStore()
 
 const route = useRoute()
 const router = useRouter()
+// 用于判断是否能够选中患者  --极速问诊流程中能够选中  --家庭档案中不能选中
 const isChanged = computed(() => {
   return route.query.isChanged === '1'
 })
